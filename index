@@ -1,0 +1,341 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .calculator {
+            width: 340px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .display {
+            background: #0d0d1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .history {
+            font-size: 14px;
+            color: #6c757d;
+            min-height: 20px;
+            text-align: right;
+            margin-bottom: 8px;
+        }
+        
+        .output {
+            font-size: 36px;
+            font-weight: 600;
+            color: #ffffff;
+            text-align: right;
+            word-break: break-all;
+        }
+        
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        
+        button {
+            height: 65px;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .number {
+            background: #2d3047;
+            color: #ffffff;
+            box-shadow: 0 4px 0 #1f2135;
+        }
+        
+        .number:hover {
+            background: #353853;
+            transform: translateY(-2px);
+        }
+        
+        .number:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1f2135;
+        }
+        
+        .operator {
+            background: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 4px 0 #4338ca;
+        }
+        
+        .operator:hover {
+            background: #5b55e8;
+            transform: translateY(-2px);
+        }
+        
+        .operator:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #4338ca;
+        }
+        
+        .equals {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 0 #059669;
+        }
+        
+        .equals:hover {
+            background: #34d399;
+            transform: translateY(-2px);
+        }
+        
+        .equals:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #059669;
+        }
+        
+        .function {
+            background: #6b7280;
+            color: #ffffff;
+            box-shadow: 0 4px 0 #4b5563;
+        }
+        
+        .function:hover {
+            background: #7c83a0;
+            transform: translateY(-2px);
+        }
+        
+        .function:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #4b5563;
+        }
+        
+        .zero {
+            grid-column: span 2;
+        }
+        
+        .calculator-title {
+            text-align: center;
+            color: #e2e8f0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 400px) {
+            .calculator {
+                width: 100%;
+                padding: 16px;
+            }
+            
+            button {
+                height: 60px;
+                font-size: 18px;
+            }
+            
+            .output {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="calculator-title">Calculator</div>
+
+        <div class="display">
+            <div class="history" id="history"></div>
+            <div class="output" id="output">0</div>
+        </div>
+
+        <div class="keys">
+            <button class="function" data-action="clear">C</button>
+            <button class="function" data-action="backspace">⌫</button>
+            <button class="function" data-action="percent">%</button>
+            <button class="operator" data-value="/">÷</button>
+
+            <button class="number" data-value="7">7</button>
+            <button class="number" data-value="8">8</button>
+            <button class="number" data-value="9">9</button>
+            <button class="operator" data-value="*">×</button>
+
+            <button class="number" data-value="4">4</button>
+            <button class="number" data-value="5">5</button>
+            <button class="number" data-value="6">6</button>
+            <button class="operator" data-value="-">−</button>
+
+            <button class="number" data-value="1">1</button>
+            <button class="number" data-value="2">2</button>
+            <button class="number" data-value="3">3</button>
+            <button class="operator" data-value="+">+</button>
+
+            <button class="number zero" data-value="0">0</button>
+            <button class="number" data-value=".">.</button>
+            <button class="equals" data-action="equals">=</button>
+        </div>
+    </div>
+
+    <script>
+        var output = document.getElementById('output');
+        var history = document.getElementById('history');
+
+        var currentInput = '0';
+        var previousInput = '';
+        var operator = null;
+        var shouldResetScreen = false;
+
+        function updateDisplay() {
+            output.textContent = currentInput;
+            history.textContent = previousInput + (operator ? ' ' + getOperatorSymbol(operator) : '');
+        }
+
+        function getOperatorSymbol(op) {
+            if (op === '+') return '+';
+            if (op === '-') return '−';
+            if (op === '*') return '×';
+            if (op === '/') return '÷';
+            return op;
+        }
+
+        function appendNumber(number) {
+            if (currentInput === '0' || shouldResetScreen) {
+                currentInput = number;
+                shouldResetScreen = false;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal() {
+            if (shouldResetScreen) {
+                currentInput = '0.';
+                shouldResetScreen = false;
+            } else if (currentInput.indexOf('.') === -1) {
+                currentInput += '.';
+            }
+            updateDisplay();
+        }
+
+        function handleOperator(nextOperator) {
+            if (operator && !shouldResetScreen) {
+                calculate();
+            }
+            previousInput = currentInput;
+            operator = nextOperator;
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (operator === null || shouldResetScreen) {
+                return;
+            }
+
+            var prevValue = parseFloat(previousInput);
+            var currentValue = parseFloat(currentInput);
+            var result;
+
+            if (operator === '+') {
+                result = prevValue + currentValue;
+            } else if (operator === '-') {
+                result = prevValue - currentValue;
+            } else if (operator === '*') {
+                result = prevValue * currentValue;
+            } else if (operator === '/') {
+                if (currentValue === 0) {
+                    alert("Cannot divide by zero!");
+                    clear();
+                    return;
+                }
+                result = prevValue / currentValue;
+            }
+
+            currentInput = result.toString();
+            operator = null;
+            previousInput = '';
+            shouldResetScreen = true;
+            updateDisplay();
+            console.log("Result:", result);
+        }
+
+        function clear() {
+            currentInput = '0';
+            previousInput = '';
+            operator = null;
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function percentage() {
+            currentInput = (parseFloat(currentInput) / 100).toString();
+            updateDisplay();
+        }
+
+        var buttons = document.querySelectorAll('button');
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].addEventListener('click', function() {
+                var value = this.getAttribute('data-value');
+                var action = this.getAttribute('data-action');
+
+                if (action === 'clear') {
+                    clear();
+                } else if (action === 'backspace') {
+                    backspace();
+                } else if (action === 'percent') {
+                    percentage();
+                } else if (action === 'equals') {
+                    calculate();
+                } else if (value) {
+                    if (value === '+' || value === '-' || value === '*' || value === '/') {
+                        handleOperator(value);
+                    } else if (value === '.') {
+                        appendDecimal();
+                    } else {
+                        appendNumber(value);
+                    }
+                }
+            });
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
